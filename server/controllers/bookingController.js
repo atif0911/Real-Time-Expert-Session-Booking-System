@@ -67,9 +67,34 @@ exports.createBooking = async (req, res) => {
 
 exports.getBookingsByEmail = async (req, res) => {
   try {
-    const email = req.user.email;
+    const email = req.query.email || req.user.email;
     const bookings = await Booking.find({ userEmail: email }).populate('expertId', 'name category');
     res.json(bookings);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.updateBookingStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    // Validate status string
+    const validStatuses = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
+    if (!validStatuses.includes(status)) {
+       return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const booking = await Booking.findById(id);
+    if (!booking) {
+       return res.status(404).json({ message: 'Booking not found' });
+    }
+    
+    booking.status = status;
+    await booking.save();
+    
+    res.json(booking);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

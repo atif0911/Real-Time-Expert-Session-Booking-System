@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 
 function ExpertDashboard() {
   const { user } = useAuth();
+  const socket = useSocket();
   const [slots, setSlots] = useState([]);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
@@ -13,8 +15,6 @@ function ExpertDashboard() {
     // Fetch current expert's slots
     const fetchSlots = async () => {
         try {
-            // We need a new endpoint for "my slots" or just filter the public one
-            // For now, let's fetch the expert by ID (user._id)
             const { data } = await api.get(`/experts/${user._id}`);
             setSlots(data.slots || []);
         } catch (error) {
@@ -23,6 +23,28 @@ function ExpertDashboard() {
     };
     if (user) fetchSlots();
   }, [user]);
+
+  useEffect(() => {
+    if (!socket || !user) return;
+
+    const handleSlotUpdate = (data) => {
+      // Only update if the booking is for THIS expert
+      if (data.expertId === user._id) {
+        setSlots(prev => prev.map(slot => {
+          if (slot.date === data.date && slot.time === data.timeSlot) {
+            return { ...slot, isBooked: data.isBooked };
+          }
+          return slot;
+        }));
+      }
+    };
+
+    socket.on('slotUpdate', handleSlotUpdate);
+
+    return () => {
+      socket.off('slotUpdate', handleSlotUpdate);
+    };
+  }, [socket, user]);
 
   const addSlot = async (e) => {
     e.preventDefault();

@@ -39,11 +39,14 @@ function Navbar() {
   );
 }
 
+import { useLocation } from 'react-router-dom';
+
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
   if (loading) return null;
-  return user ? children : <Navigate to="/login" />;
+  return user ? children : <Navigate to="/login" state={{ from: location }} replace />;
 };
 
 function App() {
@@ -58,7 +61,11 @@ function App() {
                 <Route path="/" element={<ExpertsList />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/expert/:id" element={<ExpertDetail />} />
+                <Route path="/expert/:id" element={
+                  <ProtectedRoute>
+                    <ExpertDetail />
+                  </ProtectedRoute>
+                } />
                 
                 {/* Protected Routes */}
                 <Route path="/dashboard" element={

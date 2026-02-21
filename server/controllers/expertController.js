@@ -47,14 +47,23 @@ exports.getExpertById = async (req, res) => {
 
 // Add a slot (Protected, Expert only)
 exports.addSlot = async (req, res) => {
-    try {
+  try {
+
         const { date, time } = req.body;
+        
         const expert = await Expert.findById(req.user._id);
         
         if (!expert) return res.status(404).json({ message: 'Expert not found' });
 
+        const slotExists = expert.slots.some(slot => slot.date === date && slot.time === time);
+        if (slotExists) {
+            return res.status(400).json({ message: 'Slot already exists for this date and time' });
+        }
+
         expert.slots.push({ date, time, isBooked: false });
+        
         await expert.save();
+        
 
         res.status(201).json(expert.slots);
     } catch (err) {

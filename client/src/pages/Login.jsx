@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 function Login() {
@@ -8,6 +8,7 @@ function Login() {
   const [role, setRole] = useState('user'); // Default to user login
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
@@ -15,7 +16,8 @@ function Login() {
     setError('');
     const result = await login(email, password, role);
     if (result.success) {
-      navigate('/');
+      const from = location.state?.from?.pathname || (role === 'expert' ? '/dashboard' : '/');
+      navigate(from, { replace: true });
     } else {
       setError(result.message);
     }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 function Register() {
@@ -8,6 +8,7 @@ function Register() {
   });
   const { register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
@@ -25,7 +26,8 @@ function Register() {
     
     const result = await register(formData);
     if (result.success) {
-      navigate('/');
+      const from = location.state?.from?.pathname || (formData.role === 'expert' ? '/dashboard' : '/');
+      navigate(from, { replace: true });
     } else {
       setError(result.message);
     }

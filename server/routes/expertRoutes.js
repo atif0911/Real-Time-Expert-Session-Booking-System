@@ -4,7 +4,7 @@ const { getExperts, getExpertById, addSlot } = require('../controllers/expertCon
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 router.get('/', getExperts);
-router.get('/:id', getExpertById);
 router.post('/slots', protect, authorize('expert'), addSlot);
+router.get('/:id', getExpertById);
 
 module.exports = router;
